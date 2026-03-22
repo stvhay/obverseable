@@ -24,3 +24,9 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Nix / direnv
+.direnv/
+
+# Claude Code runtime
+.claude/.statusline-stats

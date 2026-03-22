@@ -1,47 +1,97 @@
 # Obverseable
 
-Obverseable gives Claude (or any MCP client) full access to a browser's DevTools capabilities via three components: a Firefox WebExtension (thin bridge), an MCP Server (router), and Claude Code (brain).
+A Claude Code skill for operating Firefox via the Remote Debugging Protocol (RDP). Gives Claude direct access to every Firefox DevTools capability — JS evaluation, network inspection, DOM traversal, debugger control, screenshots, storage, memory profiling — through the geckordp Python library.
 
 ## Architecture
 
 ```
-Firefox Extension  --WebSocket-->  MCP Server  --MCP-->  Claude Code
-(DevTools bridge)                  (Python)              (any MCP client)
+Firefox (user's browser)  --TCP/RDP-->  Claude Code (via geckordp skill)
+       port 6000                         reads reference docs + runs Python
 ```
 
-- **Extension**: Vanilla JavaScript, Firefox WebExtension APIs, WebSocket client. No build step.
-- **MCP Server**: Python. Accepts WebSocket connections from extensions, exposes DevTools as MCP tools.
-- **Claude**: Connects via standard MCP protocol. Not embedded in the browser.
+Single connection. No extension, no server, no intermediary. Claude connects directly to Firefox's RDP port using geckordp and operates DevTools programmatically.
+
+## What This Project Is
+
+1. **Skill reference material** (`.claude/skills/geckordp/`) — comprehensive, tested documentation of every geckordp actor, method, parameter, and wire format
+2. **Integration test harness** (`tests/`) — 104 tests validating every capability against a live Firefox instance
+3. **Case studies** (planned) — worked examples of black-box reverse engineering using the skill
 
 ## Tech Stack
 
-- Extension: Vanilla JS, Firefox WebExtension APIs
-- Server: Python
-- No build step for the extension
+- Python 3.13+, geckordp library
+- Nix flake for dev environment (uv, ruff, pytest)
+- Firefox with `--start-debugger-server` enabled
 
 ## Build & Test
 
-<!-- TODO: fill in as project develops -->
-
 ```bash
-# Server
-# pip install -e .
-# pytest
+# Install dependencies
+uv sync --extra dev
 
-# Extension
-# Load as temporary add-on in Firefox: about:debugging → Load Temporary Add-on
+# Run tests against live Firefox (must be running with RDP enabled)
+FIREFOX_HOST=192.168.64.1 FIREFOX_PORT=6000 uv run pytest tests/ -v --timeout=30
+
+# Firefox setup: set these in about:config, then launch with --start-debugger-server 6000
+#   devtools.debugger.remote-enabled = true
+#   devtools.debugger.force-local = false
+#   devtools.debugger.prompt-connection = false
+#   devtools.chrome.enabled = true
 ```
 
-## Workflow
+## Skill Structure
 
-1. File a GitHub issue (bug report or feature request template)
-2. Create a feature branch (`/using-git-worktrees` for isolation)
-3. Brainstorm the design (`/brainstorming`)
-4. Write an implementation plan (`/writing-plans`)
-5. Execute the plan (`/executing-plans`)
-6. Verify with evidence before claiming done
-7. Self-review (`/requesting-code-review`)
-8. Open a PR using the template
+```
+.claude/skills/geckordp/
+├── SKILL.md                    # Skill entry point (with frontmatter)
+└── references/
+    ├── 00-connection.md        # Firefox setup, connection pattern
+    ├── 01-rdp-client.md        # RDPClient API, listeners
+    ├── 02-root-actor.md        # Tabs, processes, workers
+    ├── 03-tab-actor.md         # Target, watcher
+    ├── 04-web-console.md       # JS eval (two-stage async)
+    ├── 05-thread-debugger.md   # Breakpoints, stepping
+    ├── 06-source-actor.md      # Source text, breakpoint positions
+    ├── 07a-inspector.md        # InspectorActor — walker, styles, highlighters
+    ├── 07b-walker.md           # WalkerActor — DOM traversal, manipulation
+    ├── 07c-node.md             # NodeActor, NodeListActor
+    ├── 08-network.md           # Network capture with bodies
+    ├── 09-screenshot.md        # Page/element screenshots
+    ├── 10-memory.md            # Memory profiling, heap snapshots
+    ├── 11-storage.md           # Cookies, localStorage, IndexedDB
+    ├── 12-preference-device.md # Firefox prefs, device info
+    ├── 13-accessibility.md     # A11y tree, color blindness sim
+    ├── 14-window-global.md     # Navigation, frames, tab control
+    ├── 15-configuration.md     # Cache, UA, JS toggle, DPR
+    ├── 16-events.md            # All event types for listeners
+    ├── 17-string-actor.md      # LongString content retrieval
+    ├── 18-descriptors.md       # Process, Worker, Extension actors
+    └── 19-settings-debug.md    # geckordp debug logging
+```
+
+## Workflow (Accelerated)
+
+CI, version bumping, and changelog enforcement are temporarily suspended to accelerate development. Plans are optional — use when helpful, skip when overhead exceeds value.
+
+**Still enforced:**
+- TDD — write tests, verify against live browser
+- Verification before completion — evidence before assertions
+- SPEC.md for subsystems — codify invariants and failure modes
+- Documentation — keep skill reference files current
+
+**Suspended:**
+- CI pipeline checks
+- Version bump / changelog maintenance
+- Mandatory implementation plans
+- PR template checklist
+
+**Process:**
+1. File a GitHub issue when tracking is useful
+2. Branch for isolation when needed (`/using-git-worktrees`)
+3. Brainstorm if the problem space is unclear (`/brainstorming`)
+4. Write tests first, then implement
+5. Verify with evidence before claiming done
+6. Self-review before merging (`/requesting-code-review`)
 
 ## Writing Standards
 
@@ -56,3 +106,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 ## Lessons Learned
 
 - Always run `/finishing-a-development-branch` before merging to ensure documentation is updated and version bumps are correct.
+- Screenshot actor must be accessed from root (`root.get_root()["screenshotActor"]`), not from target.
+- `evaluate_js_async` is two-stage — register listener BEFORE calling, match results by `resultID`.
+- Network methods fail silently without `watcher.watch_resources()` first.
+- `inner_html()`/`outer_html()` return LongString for large pages — use `StringActor.substring()` to page through.
