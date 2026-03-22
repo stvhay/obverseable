@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check for unreleased changes
+        id: check
+        run: |
+          if grep -q "^## Unreleased" CHANGELOG.md; then
+            echo "has_unreleased=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_unreleased=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump version
+        if: steps.check.outputs.has_unreleased == 'true'
+        run: ./compute-version.sh --ci --update
+
+      - name: Read new version
+        if: steps.check.outputs.has_unreleased == 'true'
+        id: version
+        run: echo "version=$(./compute-version.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        if: steps.check.outputs.has_unreleased == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "release: v${{ steps.version.outputs.version }}"
+          git push
+
+      - name: Create tag and release
+        if: steps.check.outputs.has_unreleased == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="$(date -u +%Y-%m-%dT%H%M%SZ)"
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "See [CHANGELOG.md](CHANGELOG.md) for details."

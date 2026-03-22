@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "preCommit": [
+      {
+        "command": "bash check-version-bump.sh",
+        "description": "Validate changelog has Unreleased section and bump comment on source changes"
+      },
+      {
+        "command": "bash check-changelog.sh",
+        "description": "Validate bump comment when Unreleased section exists"
+      }
+    ]
+  }
+}

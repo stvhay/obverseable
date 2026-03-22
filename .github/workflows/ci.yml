@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f pyproject.toml ]; then pip install -e ".[dev]" 2>/dev/null || true; fi
+
+      - name: Run tests
+        run: |
+          if command -v pytest &>/dev/null; then
+            pytest
+          else
+            echo "No test runner configured yet"
+          fi
+
+  version-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PR labels match changelog bump type
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get PR labels
+          LABELS=$(gh pr view "${{ github.event.pull_request.number }}" --json labels --jq '.labels[].name')
+
+          # Extract bump label if present
+          BUMP_LABEL=""
+          for label in $LABELS; do
+            case "$label" in
+              bump:patch) BUMP_LABEL="patch" ;;
+              bump:minor) BUMP_LABEL="minor" ;;
+              bump:major) BUMP_LABEL="major" ;;
+            esac
+          done
+
+          # Extract bump comment from CHANGELOG.md
+          BUMP_COMMENT=$(grep -oP '<!--\s*bump:\s*\K(patch|minor|major)' CHANGELOG.md || true)
+
+          # Validate consistency
+          if [ -n "$BUMP_LABEL" ] && [ -n "$BUMP_COMMENT" ]; then
+            if [ "$BUMP_LABEL" != "$BUMP_COMMENT" ]; then
+              echo "::error::PR label 'bump:$BUMP_LABEL' does not match CHANGELOG.md bump comment '$BUMP_COMMENT'"
+              exit 1
+            fi
+            echo "OK: PR label and changelog bump type match ($BUMP_LABEL)"
+          elif [ -n "$BUMP_LABEL" ] && [ -z "$BUMP_COMMENT" ]; then
+            echo "::warning::PR has bump:$BUMP_LABEL label but CHANGELOG.md has no bump comment"
+          elif [ -z "$BUMP_LABEL" ] && [ -n "$BUMP_COMMENT" ]; then
+            echo "::warning::CHANGELOG.md has bump:$BUMP_COMMENT but PR has no bump label"
+          else
+            echo "OK: No bump label or comment found (no version change expected)"
+          fi
