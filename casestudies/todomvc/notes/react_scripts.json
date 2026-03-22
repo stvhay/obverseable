@@ -1,0 +1,20 @@
+[
+  {
+    "src": "https://www.google-analytics.com/analytics.js",
+    "role": "analytics",
+    "type": "classic",
+    "len": 0
+  },
+  {
+    "src": "/examples/react/dist/app.bundle.js",
+    "role": "app",
+    "type": "classic",
+    "len": 0
+  },
+  {
+    "src": "/examples/react/dist/base.js",
+    "role": "shared-infra",
+    "type": "classic",
+    "len": 0
+  }
+]

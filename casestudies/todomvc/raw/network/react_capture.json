@@ -1,0 +1,72 @@
+[
+  {
+    "url": "https://todomvc.com/examples/react/dist/",
+    "method": "GET",
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": null,
+    "method": null,
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": "https://todomvc.com/examples/react/dist/app.bundle.js",
+    "method": "GET",
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": "https://todomvc.com/examples/react/dist/base.js",
+    "method": "GET",
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": null,
+    "method": null,
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": null,
+    "method": null,
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": "https://todomvc.com/learn.json",
+    "method": "GET",
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": null,
+    "method": null,
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": "https://todomvc.com/favicon.ico",
+    "method": "GET",
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  },
+  {
+    "url": null,
+    "method": null,
+    "status": null,
+    "mimeType": null,
+    "contentSize": null
+  }
+]

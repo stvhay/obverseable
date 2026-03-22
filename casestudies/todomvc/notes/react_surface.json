@@ -1,0 +1,108 @@
+{
+  "url": "https://todomvc.com/examples/react/dist/",
+  "title": "TodoMVC: React",
+  "charset": "UTF-8",
+  "contentType": "text/html",
+  "doctype": "html",
+  "cookie": "",
+  "referrer": "",
+  "scripts": [
+    {
+      "src": "https://www.google-analytics.com/analytics.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/examples/react/dist/app.bundle.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/examples/react/dist/base.js",
+      "type": "classic",
+      "len": 0
+    }
+  ],
+  "stylesheets": [
+    "/examples/react/dist/app.css"
+  ],
+  "metas": [
+    {
+      "name": "description",
+      "content": "A TodoMVC written in React.",
+      "httpEquiv": ""
+    },
+    {
+      "name": "viewport",
+      "content": "width=device-width,initial-scale=1",
+      "httpEquiv": ""
+    },
+    {
+      "name": "",
+      "content": "ie=edge",
+      "httpEquiv": "X-UA-Compatible"
+    }
+  ],
+  "frameworks": {
+    "react": false,
+    "reactFiber": false,
+    "vue": false,
+    "angular": false,
+    "svelte": false,
+    "jquery": false,
+    "backbone": false
+  },
+  "storage": {
+    "localStorageKeys": [],
+    "sessionStorageKeys": [
+      "__darkreader__wasEnabledForHost"
+    ],
+    "cookieCount": 0
+  },
+  "links": [
+    {
+      "text": "Source",
+      "href": "https://github.com/tastejs/todomvc/tree/gh-pages/examples/react"
+    },
+    {
+      "text": "Demo",
+      "href": "https://todomvc.com/examples/typescript-react"
+    },
+    {
+      "text": "Source",
+      "href": "https://github.com/tastejs/todomvc/tree/gh-pages/examples/typescript-react"
+    },
+    {
+      "text": "React",
+      "href": "http://facebook.github.io/react"
+    },
+    {
+      "text": "Quick Start",
+      "href": "https://react.dev/learn"
+    },
+    {
+      "text": "API Reference",
+      "href": "https://react.dev/reference/react"
+    },
+    {
+      "text": "Philosophy",
+      "href": "https://petehuntsposts.quora.com/React-Under-the-Hood"
+    },
+    {
+      "text": "React Community",
+      "href": "https://react.dev/community"
+    },
+    {
+      "text": "ReactJS on Stack Overflow",
+      "href": "https://stackoverflow.com/questions/tagged/reactjs"
+    },
+    {
+      "text": "let us know",
+      "href": "https://github.com/tastejs/todomvc/issues"
+    },
+    {
+      "text": "TodoMVC",
+      "href": "http://todomvc.com/"
+    }
+  ]
+}

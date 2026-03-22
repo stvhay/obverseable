@@ -1,0 +1,13 @@
+{
+  "url": "https://todomvc.com/examples/react/dist/",
+  "title": "TodoMVC: React",
+  "scripts_total": 3,
+  "scripts_by_role": {
+    "analytics": 1,
+    "app": 1,
+    "shared-infra": 1
+  },
+  "source_files_recovered": 28,
+  "network_requests": 10,
+  "styles_extracted": 8
+}
