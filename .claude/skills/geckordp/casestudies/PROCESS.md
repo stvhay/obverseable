@@ -118,8 +118,30 @@ If the target has multiple implementations (like TodoMVC):
 
 1. Run `.claude/skills/geckordp/tools/score_session.py <session_id> <deliverable_kb> <waste_pct>`
 2. Record scores via `.claude/skills/geckordp/tools/grades_db.py`
-3. Write RETROSPECTIVE.md with metrics, lessons, follow-up actions
-4. **Cleanup check:** Verify no operational knowledge leaked to `~/.claude/projects/.../memory/`. All knowledge ships in the repo (CLAUDE.md, PROCESS.md, RUBRIC.md). Delete any memory files created during the session.
+3. Answer the **retrospective checklist** (below) — paste answers into RETROSPECTIVE.md
+4. Write RETROSPECTIVE.md with metrics, checklist answers, lessons, follow-up actions
+5. **Cleanup check:** Verify no operational knowledge leaked to `~/.claude/projects/.../memory/`. All knowledge ships in the repo (CLAUDE.md, PROCESS.md, RUBRIC.md). Delete any memory files created during the session.
+
+### Retrospective Checklist
+
+Answer every question using evidence (JSONL output, file contents, git log), not memory. If the answer reveals a problem, say so — the checklist exists to catch failures before they ship.
+
+**Grounding**
+1. Did you run `score_session.py` and paste its output before writing any scores? What were the actual numbers?
+2. What was the total token cost (input + output)? What model(s) were used and for what proportion of the work?
+3. Do the turn count and wall-clock time in your retrospective match the JSONL? (Check, don't estimate.)
+
+**Quality**
+4. If a previous session exists for this target (or a comparable one), which report is more thorough? Be specific about what the other report covered that yours didn't.
+5. What did you miss? Name at least one thing a competent reviewer would find absent from the deliverables.
+
+**Efficiency**
+6. What percentage of your turns were text-only (no tool calls)? What were they doing — could any have been eliminated or merged with tool calls?
+7. Were model tiers used appropriately? Could any opus work have been done by sonnet or haiku?
+
+**Generalization**
+8. Do the tools and process changes you're proposing work on any website, or only this target? If target-specific, delete them or demote to notes.
+9. Are the lessons learned stated as general principles, or as target-specific observations? Rewrite any that don't generalize.
 
 ## Efficiency Constraints
 
@@ -141,12 +163,17 @@ Target: **< 20 turns total** for a standard site.
 
 ### Rules
 
-1. **Never produce a text-only turn** unless answering a user question. Every turn should include at least one tool call.
+1. **Never produce a text-only turn** unless answering a user question. Every turn should include at least one tool call. Status updates go alongside tool calls, never as standalone messages.
 2. **Batch RDP operations.** One connection, multiple evals. Never open/close connection for a single query.
 3. **Subagents write to files.** Never return large data to main context.
 4. **Read before writing.** Don't guess APIs — invoke the skill, read the reference.
 5. **No reinventing wheels.** If a tool exists in `tools/`, use it.
-6. **Always read JSONL at the end.** Ground truth for retrospective. Don't reflect from memory.
+6. **Always read JSONL at the end.** Run `score_session.py` FIRST, paste its output into RETROSPECTIVE.md, then write analysis. Never estimate scores from memory — self-perception is systematically wrong by 3-7x.
+7. **Batch parallel tool calls.** All independent Read/Bash calls go in one message. Reading 8 files = 1 message with 8 reads, not 8 messages.
+8. **One behavioral probing script per target.** Test all interactions in a single eval: add, toggle, edit, delete, filter, edge cases. Return one result object. Never split into separate eval calls.
+9. **Analyze ALL loaded scripts.** After fingerprinting, categorize every script (app code, framework, shared infrastructure, analytics, polyfill). Analyze all "shared infrastructure" files — they often define the host page contract. Don't skip support files.
+10. **Extract visual design programmatically.** One eval call to get computed styles for key elements (colors, fonts, dimensions, borders, shadows). DESIGN.md without visual design values fails the reproducibility gate.
+11. **Validate subagent output before trusting it.** Check: file exists, valid JSON, no null/false for required keys. If validation fails, re-run with sonnet. Don't debug haiku failures.
 
 ### Model Tier Strategy
 

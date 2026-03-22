@@ -89,7 +89,9 @@ casestudies/{target}/
 .claude/skills/geckordp/
 ├── SKILL.md                    # Skill entry point (with frontmatter)
 ├── tools/
-│   ├── recon.py                # RDPSession context manager — connect, navigate, fingerprint, sources
+│   ├── recon.py                # RDPSession — connect, navigate, fingerprint, classify scripts, extract styles, source maps, network
+│   ├── inject.py               # ScriptInjector — pre-page JS injection via debugger pause
+│   ├── phase_recon.py          # Phases 0-2 in one script — any site (navigate, fingerprint, sources, network, styles)
 │   ├── score_session.py        # JSONL session analyzer — D2/D3/D4 auto-scoring
 │   └── grades_db.py            # SQLite grades store — session-over-session tracking
 ├── casestudies/
@@ -157,6 +159,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 
 ## Lessons Learned
 
+### RDP / geckordp
 - Always run `/finishing-a-development-branch` before merging to ensure documentation is updated and version bumps are correct.
 - Screenshot actor must be accessed from root (`root.get_root()["screenshotActor"]`), not from target.
 - `evaluate_js_async` is two-stage — register listener BEFORE calling, match results by `resultID`.
@@ -165,3 +168,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 - `navigate_to()` and `reload()` destroy the window global — monkey-patches installed via eval don't survive. Use `ScriptInjector` from `tools/inject.py` to inject JS before page scripts run.
 - Large JS eval results (e.g., `JSON.stringify` of big arrays) return as LongString grips, not strings. Always check for `{"type": "longString"}` and resolve via `StringActor`.
 - After navigation, always re-acquire the target — the old `consoleActor` and other actor IDs become stale. `RDPSession.navigate()` handles this automatically.
+- `extract_source_map()` fails on large bundles — `fetch_text()` returns LongString grip. Use stash pattern: `fetch(url).then(r=>r.text()).then(t=>{window.__sm=t})`, parse source list in-browser.
+
+### Case Study Process
+- **Never score from memory.** Run `score_session.py` FIRST, paste output, then write analysis. Self-estimates are off by 3-7x.
+- **Analyze ALL loaded scripts**, not just the app bundle. Support files (analytics loaders, sidebar injectors, config fetchers) reveal shared infrastructure and host page contracts.
+- **DESIGN.md must include visual design values.** Extract computed styles programmatically — colors, fonts, dimensions, breakpoints. Without these the spec fails the reproducibility gate.
+- **Text-only turns are the primary efficiency leak.** Every assistant message must include at least one tool call. Status goes alongside tool calls, never standalone.
+- **One behavioral probing script per target.** Test all interactions in a single eval returning one result object. Never split into separate calls.
+- **Batch all parallel tool calls into one message.** 8 file reads = 1 message, not 8.
+- **Validate subagent output programmatically** before trusting it. Check for required keys, non-null values.

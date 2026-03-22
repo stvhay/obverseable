@@ -123,15 +123,30 @@ class RDPSession:
             return json.loads(val)
         return val
 
+    def _resolve_long_string(self, val):
+        """Resolve a LongString grip to full content string."""
+        if not (isinstance(val, dict) and val.get("type") == "longString"):
+            return val
+        from geckordp.actors.string import StringActor
+        actor = StringActor(self.client, val["actor"])
+        full = ""
+        chunk_size = 4000
+        for start in range(0, val["length"], chunk_size):
+            end = min(start + chunk_size, val["length"])
+            full += actor.substring(start, end)
+        return full
+
     def fetch_text(self, url, wait=2.0):
         """Fetch a URL from the page context and return text content.
 
         Uses the window.__tmp stash pattern to handle async fetch.
+        Resolves LongString grips automatically.
         """
         self.eval_js(
             f'fetch("{url}").then(r=>r.text()).then(t=>{{window.__tmp=t}})', wait
         )
         val = self.eval_js("window.__tmp", 0.3)
+        val = self._resolve_long_string(val)
         self.eval_js("delete window.__tmp", 0.1)
         return val
 
@@ -184,29 +199,74 @@ class RDPSession:
         """Fetch a JS bundle and its source map. Returns dict of {filepath: content}.
 
         Returns None if no source map found.
+        Handles large bundles and source maps via LongString resolution.
+        For very large source maps (>500KB), parses in-browser to avoid
+        transferring the full map to Python.
         """
-        source = self.fetch_text(bundle_url, wait=2.0)
-        if not source:
+        # Check for source map URL without fetching full bundle
+        has_map = self.eval_json(
+            f'''(() => {{
+                window.__sm_check = null;
+                return JSON.stringify({{checking: true}});
+            }})()'''
+        )
+        self.eval_js(
+            f'fetch("{bundle_url}").then(r=>r.text()).then(t=>{{window.__sm_check=t}})',
+            wait=3.0,
+        )
+        check = self.eval_json(
+            '''JSON.stringify({
+                size: window.__sm_check ? window.__sm_check.length : -1,
+                hasMap: window.__sm_check ? window.__sm_check.includes("sourceMappingURL") : false,
+                mapUrl: window.__sm_check ? (window.__sm_check.match(/sourceMappingURL=(.+)$/m) || [])[1] || null : null
+            })'''
+        )
+
+        if not check or check.get("size", -1) < 0:
+            self.eval_js("delete window.__sm_check", 0.1)
             return None
 
-        # Check for sourceMappingURL
-        if "sourceMappingURL=" not in source:
-            return {"__bundle__": source}
+        if not check.get("hasMap"):
+            # No source map — fetch the bundle text directly
+            source = self._resolve_long_string(
+                self.eval_js("window.__sm_check", 0.3)
+            )
+            self.eval_js("delete window.__sm_check", 0.1)
+            return {"__bundle__": source} if isinstance(source, str) else None
 
-        map_url = source.split("sourceMappingURL=")[-1].strip()
-        map_text = self.fetch_text(map_url, wait=3.0)
-        if not map_text:
-            return {"__bundle__": source}
+        map_url = check["mapUrl"]
+        self.eval_js("delete window.__sm_check", 0.1)
 
-        sm = json.loads(map_text)
+        if not map_url:
+            return None
+
+        # Fetch and parse source map in-browser to avoid LongString transfer
+        self.eval_js(
+            f'fetch("{map_url}").then(r=>r.text()).then(t=>{{window.__sm_data=JSON.parse(t)}})',
+            wait=5.0,
+        )
+
+        # Get source file list
+        sources_val = self.eval_js(
+            "JSON.stringify(window.__sm_data ? window.__sm_data.sources : [])", wait=1.0
+        )
+        sources_val = self._resolve_long_string(sources_val)
+        if not isinstance(sources_val, str):
+            self.eval_js("delete window.__sm_data", 0.1)
+            return None
+        sources_list = json.loads(sources_val)
+
+        # Extract each source file content
         result = {}
-        sources = sm.get("sources", [])
-        contents = sm.get("sourcesContent", [])
-        for i, src_path in enumerate(sources):
-            content = contents[i] if i < len(contents) else None
-            if content:
+        for i, src_path in enumerate(sources_list):
+            content = self.eval_js(
+                f"window.__sm_data.sourcesContent[{i}]", wait=0.5
+            )
+            content = self._resolve_long_string(content)
+            if isinstance(content, str) and len(content) > 0:
                 result[src_path] = content
 
+        self.eval_js("delete window.__sm_data", 0.1)
         return result
 
     def walk_dom(self, selector=None, max_depth=3):
@@ -238,6 +298,50 @@ class RDPSession:
             return info
 
         return walk(start_node)
+
+    def extract_styles(self, selectors):
+        """Extract computed styles for a list of CSS selectors. Returns list of dicts."""
+        sel_json = json.dumps(selectors)
+        return self.eval_json(
+            f"""JSON.stringify({sel_json}.map(sel => {{
+                const el = document.querySelector(sel);
+                if (!el) return {{selector: sel, found: false}};
+                const cs = getComputedStyle(el);
+                return {{
+                    selector: sel, found: true, tag: el.tagName,
+                    color: cs.color, backgroundColor: cs.backgroundColor,
+                    fontFamily: cs.fontFamily, fontSize: cs.fontSize,
+                    fontWeight: cs.fontWeight, lineHeight: cs.lineHeight,
+                    width: cs.width, maxWidth: cs.maxWidth, minWidth: cs.minWidth,
+                    height: cs.height, padding: cs.padding, margin: cs.margin,
+                    border: cs.border, borderRadius: cs.borderRadius,
+                    boxShadow: cs.boxShadow, textDecoration: cs.textDecoration,
+                    display: cs.display, position: cs.position,
+                    opacity: cs.opacity, transform: cs.transform,
+                    outline: cs.outline, cursor: cs.cursor
+                }};
+            }}))""",
+            wait=1.0,
+        )
+
+    def classify_scripts(self):
+        """Classify all loaded scripts by role. Returns list of dicts with src, role, size."""
+        return self.eval_json(
+            """JSON.stringify([...document.querySelectorAll("script")].map(s => {
+                const src = s.src ? s.src.replace(location.origin, "") : null;
+                let role = "unknown";
+                if (!src) role = "inline";
+                else if (src.includes("analytics") || src.includes("ga.js") || src.includes("gtag")) role = "analytics";
+                else if (src.includes("node_modules") || src.includes("bower_components")) role = "dependency";
+                else if (src.includes("polyfill") || src.includes("webcomponent") || src.includes("prefixfree")) role = "polyfill";
+                else if (src.includes("bundle") || src.includes("app.")) role = "app";
+                else if (src.includes("base.") || src.includes("common")) role = "shared-infra";
+                else if (src.includes("twitter") || src.includes("facebook") || src.includes("plusone") || src.includes("widget")) role = "social";
+                else role = "app";
+                return {src, role, type: s.type || "classic", len: s.textContent.length};
+            }))""",
+            wait=1.0,
+        )
 
     def capture_network(self, action=None, wait=5.0):
         """Capture network traffic. If action is 'reload', reloads the page.

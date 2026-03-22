@@ -15,9 +15,31 @@ from pathlib import Path
 
 
 def find_jsonl(session_id):
-    """Find JSONL file matching session ID prefix."""
+    """Find JSONL file matching session ID prefix.
+
+    Special values:
+      "latest" — returns the most recently modified JSONL
+      "list"   — prints all JSONLs sorted by mtime, returns None
+    """
     base = Path.home() / ".claude" / "projects"
-    for f in base.rglob("*.jsonl"):
+    all_jsonl = sorted(base.rglob("*.jsonl"), key=lambda f: f.stat().st_mtime)
+
+    if session_id == "list":
+        for f in all_jsonl:
+            size = f.stat().st_size
+            events = []
+            with open(f) as fh:
+                first = fh.readline().strip()
+                if first:
+                    events.append(json.loads(first))
+            ts = events[0].get("timestamp", "?") if events else "?"
+            print(f"  {f.name}  {size:>10,}b  started {ts}")
+        return None
+
+    if session_id == "latest":
+        return all_jsonl[-1] if all_jsonl else None
+
+    for f in all_jsonl:
         if session_id in f.name:
             return f
     # Try exact path

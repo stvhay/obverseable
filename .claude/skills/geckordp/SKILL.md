@@ -62,12 +62,13 @@ FIREFOX_HOST=192.168.64.1 FIREFOX_PORT=6000 uv run pytest tests/ -v --timeout=30
 
 Reusable Python utilities in `tools/`:
 
-| Tool | Purpose |
-|---|---|
-| `recon.py` | `RDPSession` context manager — connect, navigate, fingerprint, fetch sources |
-| `inject.py` | `ScriptInjector` — inject JS before page scripts via debugger firstStatement pause |
-| `score_session.py` | JSONL session analyzer — computes D2/D3/D4 rubric metrics |
-| `grades_db.py` | SQLite store for per-session scores and raw metrics |
+| Tool | Purpose | Generality |
+|---|---|---|
+| `recon.py` | `RDPSession` context manager — connect, navigate, fingerprint, classify scripts, extract styles, extract source maps, capture network | Any site |
+| `inject.py` | `ScriptInjector` — inject JS before page scripts via debugger firstStatement pause | Any site |
+| `phase_recon.py` | Phases 0-2 in one script: navigate, fingerprint, classify, extract sources, capture network, extract styles | Any site |
+| `score_session.py` | JSONL session analyzer — computes D2/D3/D4 rubric metrics | Any session |
+| `grades_db.py` | SQLite store for per-session scores and raw metrics | Any session |
 
 ## Key Patterns
 
