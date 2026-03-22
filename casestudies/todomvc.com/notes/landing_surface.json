@@ -1,0 +1,352 @@
+{
+  "url": "https://todomvc.com/",
+  "title": "TodoMVC",
+  "charset": "UTF-8",
+  "contentType": "text/html",
+  "doctype": "html",
+  "cookie": "",
+  "referrer": "",
+  "scripts": [
+    {
+      "src": "https://apis.google.com/_/scs/abc-static/_/js/k=gapi.lb.en.PJsh2cctCQI.O/m=auth/exm=plusone/rt=j/sv=1/d=1/ed=1/rs=AHpOoo_QlMhY2cycn60Rs8eI1WInRwuahw/cb=gapi.loaded_1?le=scs",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "https://apis.google.com/_/scs/abc-static/_/js/k=gapi.lb.en.PJsh2cctCQI.O/m=plusone/rt=j/sv=1/d=1/ed=1/rs=AHpOoo_QlMhY2cycn60Rs8eI1WInRwuahw/cb=gapi.loaded_0?le=scs",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "https://www.google-analytics.com/ga.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "https://apis.google.com/js/plusone.js",
+      "type": "text/javascript",
+      "len": 0
+    },
+    {
+      "src": "https://platform.twitter.com/widgets.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/bower_components/webcomponentsjs/webcomponents-lite.min.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/bower_components/prefixfree/prefixfree.min.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/bower_components/jquery/dist/jquery.min.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/bower_components/bootstrap/dist/js/bootstrap.min.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/site-assets/main.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": null,
+      "type": "classic",
+      "len": 244
+    },
+    {
+      "src": null,
+      "type": "classic",
+      "len": 239
+    },
+    {
+      "src": null,
+      "type": "classic",
+      "len": 226
+    }
+  ],
+  "stylesheets": [],
+  "metas": [
+    {
+      "name": "description",
+      "content": "Helping you select an MV* framework - Todo apps for Backbone.js, Ember.js, AngularJS and many more",
+      "httpEquiv": ""
+    },
+    {
+      "name": "viewport",
+      "content": "width=device-width,initial-scale=1",
+      "httpEquiv": ""
+    },
+    {
+      "name": "twitter:card",
+      "content": "summary",
+      "httpEquiv": ""
+    },
+    {
+      "name": "twitter:title",
+      "content": "TodoMVC",
+      "httpEquiv": ""
+    },
+    {
+      "name": "twitter:site",
+      "content": "@TasteJS",
+      "httpEquiv": ""
+    },
+    {
+      "name": "twitter:description",
+      "content": "Helping you select an MV* framework - Todo apps for Backbone.js, Ember.js, AngularJS and many more",
+      "httpEquiv": ""
+    },
+    {
+      "name": "twitter:image",
+      "content": "https://raw.githubusercontent.com/tastejs/todomvc/gh-pages/site-assets/screenshot.png",
+      "httpEquiv": ""
+    },
+    {
+      "name": "",
+      "content": "http://todomvc.com",
+      "httpEquiv": ""
+    },
+    {
+      "name": "",
+      "content": "TodoMVC",
+      "httpEquiv": ""
+    },
+    {
+      "name": "",
+      "content": "https://raw.github.com/tastejs/todomvc/gh-pages/site-assets/screenshot.png",
+      "httpEquiv": ""
+    },
+    {
+      "name": "",
+      "content": "Helping you select an MV* framework - Todo apps for Backbone.js, Ember.js, AngularJS and many more",
+      "httpEquiv": ""
+    }
+  ],
+  "frameworks": {
+    "react": false,
+    "reactFiber": false,
+    "vue": false,
+    "angular": false,
+    "svelte": false,
+    "jquery": true,
+    "backbone": false
+  },
+  "storage": {
+    "localStorageKeys": [],
+    "sessionStorageKeys": [
+      "__darkreader__wasEnabledForHost"
+    ],
+    "cookieCount": 0
+  },
+  "links": [
+    {
+      "text": "Download",
+      "href": "https://github.com/tastejs/todomvc/archive/master.zip"
+    },
+    {
+      "text": "View on GitHub",
+      "href": "https://github.com/tastejs/todomvc"
+    },
+    {
+      "text": "Blog",
+      "href": "https://medium.com/@tastejs"
+    },
+    {
+      "text": "Speedometer",
+      "href": "https://browserbench.org/Speedometer3.0/"
+    },
+    {
+      "text": "",
+      "href": "https://twitter.com/tastejs"
+    },
+    {
+      "text": "",
+      "href": "https://twitter.com/share"
+    },
+    {
+      "text": "React\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/react/dist/"
+    },
+    {
+      "text": "React Redux\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/react-redux/dist"
+    },
+    {
+      "text": "Vue.js\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/vue/dist/"
+    },
+    {
+      "text": "Preact\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/preact/dist/"
+    },
+    {
+      "text": "Backbone.js\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/backbone/dist/"
+    },
+    {
+      "text": "Angular\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/angular/dist/browser/"
+    },
+    {
+      "text": "Ember.js\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/emberjs/todomvc/dist/"
+    },
+    {
+      "text": "Lit\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/lit/dist/"
+    },
+    {
+      "text": "KnockoutJS",
+      "href": "https://todomvc.com/examples/knockoutjs/"
+    },
+    {
+      "text": "Dojo",
+      "href": "https://todomvc.com/examples/dojo/"
+    },
+    {
+      "text": "Knockback.js",
+      "href": "https://todomvc.com/examples/knockback/"
+    },
+    {
+      "text": "CanJS",
+      "href": "https://todomvc.com/examples/canjs/"
+    },
+    {
+      "text": "Polymer",
+      "href": "https://todomvc.com/examples/polymer/index.html"
+    },
+    {
+      "text": "Mithril",
+      "href": "https://todomvc.com/examples/mithril/"
+    },
+    {
+      "text": "Marionette.js",
+      "href": "https://todomvc.com/examples/backbone_marionette/"
+    },
+    {
+      "text": "Svelte\n\t\t\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/svelte/dist/"
+    },
+    {
+      "text": "GWT",
+      "href": "https://todomvc.com/examples/gwt/"
+    },
+    {
+      "text": "Closure",
+      "href": "https://todomvc.com/examples/closure/"
+    },
+    {
+      "text": "Elm",
+      "href": "https://todomvc.com/examples/elm/"
+    },
+    {
+      "text": "AngularDart",
+      "href": "https://todomvc.com/examples/angular-dart/web/"
+    },
+    {
+      "text": "TypeScript + Backbone.js",
+      "href": "https://todomvc.com/examples/typescript-backbone/"
+    },
+    {
+      "text": "TypeScript + AngularJS",
+      "href": "https://todomvc.com/examples/typescript-angular/"
+    },
+    {
+      "text": "TypeScript + React",
+      "href": "https://todomvc.com/examples/typescript-react/"
+    },
+    {
+      "text": "Reagent",
+      "href": "https://todomvc.com/examples/reagent/"
+    },
+    {
+      "text": "Scala.js + Binding.scala",
+      "href": "https://todomvc.com/examples/binding-scala/"
+    },
+    {
+      "text": "js_of_ocaml",
+      "href": "https://todomvc.com/examples/js_of_ocaml/"
+    },
+    {
+      "text": "Humble + GopherJS",
+      "href": "https://todomvc.com/examples/humble/"
+    },
+    {
+      "text": "Backbone.js + RequireJS",
+      "href": "https://todomvc.com/examples/backbone_require/"
+    },
+    {
+      "text": "KnockoutJS + RequireJS",
+      "href": "https://todomvc.com/examples/knockoutjs_require/"
+    },
+    {
+      "text": "AngularJS + RequireJS",
+      "href": "https://todomvc.com/examples/angularjs_require/"
+    },
+    {
+      "text": "CanJS + RequireJS",
+      "href": "https://todomvc.com/examples/canjs_require/"
+    },
+    {
+      "text": "Lavaca + RequireJS",
+      "href": "https://todomvc.com/examples/lavaca_require/"
+    },
+    {
+      "text": "cujoJS",
+      "href": "https://todomvc.com/examples/cujo/index.html"
+    },
+    {
+      "text": "soma.js",
+      "href": "https://todomvc.com/examples/somajs/"
+    },
+    {
+      "text": "DUEL",
+      "href": "https://todomvc.com/examples/duel/www/"
+    },
+    {
+      "text": "Dijon",
+      "href": "https://todomvc.com/examples/dijon/"
+    },
+    {
+      "text": "Enyo + Backbone.js",
+      "href": "https://todomvc.com/examples/enyo_backbone/"
+    },
+    {
+      "text": "Exoskeleton",
+      "href": "https://todomvc.com/examples/exoskeleton/"
+    },
+    {
+      "text": "Ractive.js",
+      "href": "https://todomvc.com/examples/ractive/"
+    },
+    {
+      "text": "Aurelia",
+      "href": "https://todomvc.com/examples/aurelia/"
+    },
+    {
+      "text": "Riot",
+      "href": "https://todomvc.com/examples/riotjs/"
+    },
+    {
+      "text": "JSBlocks",
+      "href": "https://todomvc.com/examples/jsblocks/"
+    },
+    {
+      "text": "JavaScript ES5\n\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/javascript-es5/dist/"
+    },
+    {
+      "text": "JavaScript ES6\n\t\t\t\t\t\t\t\tNew",
+      "href": "https://todomvc.com/examples/javascript-es6/dist/"
+    }
+  ]
+}

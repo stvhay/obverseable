@@ -114,13 +114,32 @@ If the target has multiple implementations (like TodoMVC):
 
 **Write all three in sequence. Each is one turn (one Write call).**
 
+### Phase 7.5: Quality Review Panel (< 2 min, 1 turn)
+
+Dispatch three agents (haiku, sonnet, opus) in parallel to independently score D1 (Quality Depth) against the rubric. Each agent reads the deliverables and the rubric — nothing else. No self-assessment.
+
+**Tool:** `.claude/skills/geckordp/tools/quality_review.py <target_dir>` generates the review prompt. Dispatch with:
+
+```
+Agent(model="haiku",  prompt=<review_prompt>)
+Agent(model="sonnet", prompt=<review_prompt>)
+Agent(model="opus",   prompt=<review_prompt>)
+```
+
+**Use median score as D1.** Record all three scores in RETROSPECTIVE.md.
+
+**Why this exists:** Self-assessment is structurally broken. Session 2 estimated D1=17, Grade B (72/100). Actual panel score: D1=15, Grade D (44/100). Every session overestimates quality by 20-30 points when scoring from memory. The panel eliminates ego from the measurement.
+
+**Bonus:** The reviewers find bugs and gaps the author missed. Opus found 6 real bugs in session 3's deliverables that the session itself missed entirely (duplicate HTML IDs, dead code, wrong DOM claims, legacy API, toggle-all scoping, double-encoding mislabeled as defense-in-depth).
+
 ### Phase 8: Retrospective (< 3 min, 2 turns)
 
-1. Run `.claude/skills/geckordp/tools/score_session.py <session_id> <deliverable_kb> <waste_pct>`
-2. Record scores via `.claude/skills/geckordp/tools/grades_db.py`
-3. Answer the **retrospective checklist** (below) — paste answers into RETROSPECTIVE.md
-4. Write RETROSPECTIVE.md with metrics, checklist answers, lessons, follow-up actions
-5. **Cleanup check:** Verify no operational knowledge leaked to `~/.claude/projects/.../memory/`. All knowledge ships in the repo (CLAUDE.md, PROCESS.md, RUBRIC.md). Delete any memory files created during the session.
+1. Run `.claude/skills/geckordp/tools/score_session.py latest <deliverable_kb> <waste_pct>` — the scorer auto-detects the deliverable boundary and reads the live JSONL safely
+2. Collect quality review panel results (from Phase 7.5). Use **median** for D1.
+3. Record scores via `.claude/skills/geckordp/tools/grades_db.py`
+4. Answer the **retrospective checklist** (below) — paste answers into RETROSPECTIVE.md
+5. Write RETROSPECTIVE.md with metrics, panel scores, checklist answers, lessons, follow-up actions
+6. **Cleanup check:** Verify no operational knowledge leaked to `~/.claude/projects/.../memory/`. All knowledge ships in the repo (CLAUDE.md, PROCESS.md, RUBRIC.md). Delete any memory files created during the session.
 
 ### Retrospective Checklist
 
@@ -131,9 +150,9 @@ Answer every question using evidence (JSONL output, file contents, git log), not
 2. What was the total token cost (input + output)? What model(s) were used and for what proportion of the work?
 3. Do the turn count and wall-clock time in your retrospective match the JSONL? (Check, don't estimate.)
 
-**Quality**
-4. If a previous session exists for this target (or a comparable one), which report is more thorough? Be specific about what the other report covered that yours didn't.
-5. What did you miss? Name at least one thing a competent reviewer would find absent from the deliverables.
+**Quality (from panel, not self-assessment)**
+4. What were the three panel D1 scores (haiku, sonnet, opus)? What is the median? Paste the scores — do not paraphrase.
+5. What errors or missing items did the panel reviewers identify? List all unique findings across the three reviews. Which ones are fixable in the deliverables right now?
 
 **Efficiency**
 6. What percentage of your turns were text-only (no tool calls)? What were they doing — could any have been eliminated or merged with tool calls?
@@ -159,6 +178,7 @@ Target: **< 20 turns total** for a standard site.
 | Network/DOM | 1 |
 | Cross-comparison | 3 (subagent dispatch + collect) |
 | Write deliverables | 3 |
+| Quality review panel | 1 (dispatch 3 agents) |
 | Retrospective | 2 |
 
 ### Rules

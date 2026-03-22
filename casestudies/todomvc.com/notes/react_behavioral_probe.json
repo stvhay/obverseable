@@ -1,0 +1,42 @@
+{
+  "hasApp": true,
+  "initialTodos": 0,
+  "afterAdd1": 1,
+  "afterAdd2": 2,
+  "firstCompleted": true,
+  "hasFooter": true,
+  "todoCount": "1 item left!",
+  "filterLinks": [
+    {
+      "text": "All",
+      "href": "#/",
+      "selected": true
+    },
+    {
+      "text": "Active",
+      "href": "#/active",
+      "selected": false
+    },
+    {
+      "text": "Completed",
+      "href": "#/completed",
+      "selected": false
+    }
+  ],
+  "activeFilterCount": 2,
+  "completedFilterCount": 2,
+  "allFilterCount": 2,
+  "hasClearCompleted": true,
+  "clearCompletedText": "Clear completed",
+  "localStorageKeys": [],
+  "storedTodos": null,
+  "editingWorks": false,
+  "editInputValue": null,
+  "editingAfterEscape": false,
+  "afterDelete": 1,
+  "allCompleted": false,
+  "afterClearCompleted": 1,
+  "xssEscaped": false,
+  "afterEmptyInput": 2,
+  "hashRouting": ""
+}

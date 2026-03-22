@@ -1,0 +1,20 @@
+[
+  {
+    "src": "https://www.google-analytics.com/analytics.js",
+    "role": "analytics",
+    "type": "classic",
+    "len": 0
+  },
+  {
+    "src": "/examples/vue/dist/assets/index-ebzV244v.js",
+    "role": "app",
+    "type": "module",
+    "len": 0
+  },
+  {
+    "src": "/examples/vue/dist/base.js",
+    "role": "shared-infra",
+    "type": "classic",
+    "len": 0
+  }
+]

@@ -92,7 +92,9 @@ casestudies/{target}/
 │   ├── recon.py                # RDPSession — connect, navigate, fingerprint, classify scripts, extract styles, source maps, network
 │   ├── inject.py               # ScriptInjector — pre-page JS injection via debugger pause
 │   ├── phase_recon.py          # Phases 0-2 in one script — any site (navigate, fingerprint, sources, network, styles)
-│   ├── score_session.py        # JSONL session analyzer — D2/D3/D4 auto-scoring
+│   ├── phase_behavioral.py     # Phase 4 — async behavioral probe + populated style extraction
+│   ├── quality_review.py       # D1 quality review panel — dispatches haiku/sonnet/opus reviewers
+│   ├── score_session.py        # JSONL session analyzer — D2/D3/D4 auto-scoring, boundary-aware
 │   └── grades_db.py            # SQLite grades store — session-over-session tracking
 ├── casestudies/
 │   ├── PROCESS.md              # 8-phase RE methodology playbook
@@ -171,10 +173,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 - `extract_source_map()` fails on large bundles — `fetch_text()` returns LongString grip. Use stash pattern: `fetch(url).then(r=>r.text()).then(t=>{window.__sm=t})`, parse source list in-browser.
 
 ### Case Study Process
-- **Never score from memory.** Run `score_session.py` FIRST, paste output, then write analysis. Self-estimates are off by 3-7x.
+- **Never score from memory.** Run `score_session.py` FIRST, paste output, then write analysis. Self-estimates are off by 3-7x. Session 2 estimated 14 turns / Grade B; actual was 76 turns / Grade D. This error is structural — every session repeats it. Only the tooling fix (boundary-aware scorer reading live JSONL) prevents it.
 - **Analyze ALL loaded scripts**, not just the app bundle. Support files (analytics loaders, sidebar injectors, config fetchers) reveal shared infrastructure and host page contracts.
 - **DESIGN.md must include visual design values.** Extract computed styles programmatically — colors, fonts, dimensions, breakpoints. Without these the spec fails the reproducibility gate.
 - **Text-only turns are the primary efficiency leak.** Every assistant message must include at least one tool call. Status goes alongside tool calls, never standalone.
 - **One behavioral probing script per target.** Test all interactions in a single eval returning one result object. Never split into separate calls.
 - **Batch all parallel tool calls into one message.** 8 file reads = 1 message, not 8.
 - **Validate subagent output programmatically** before trusting it. Check for required keys, non-null values.
+- **Network event actors go stale after reload.** `capture_network(action="reload")` collects actor IDs from pre-reload context. Use short timeout (2s) for `getEventTimings`/`getResponseHeaders` and skip failures silently.
+- **Use async probing for reactive frameworks.** Synchronous DOM reads between dispatched events miss React/Vue re-renders. Chain operations with `setTimeout` (100ms) to let the framework reconcile.
+- **Extract styles AFTER adding content.** Selectors like `.todo-list li` return `found: false` on an empty page. Run style extraction in the behavioral probe after adding items.
+- **Computed styles show values, not mechanisms.** `getComputedStyle` gives RGB colors and pixel sizes — but not SVG data URIs, box-shadow stacks, pseudo-element content, or CSS-only visibility tricks. For a reproducible DESIGN.md, fetch and analyze the actual CSS source (`todomvc-app-css/index.css`) to document *how* things are built, not just what they look like.
+- **React controlled inputs require native setter.** `input.value = x` doesn't trigger React. Use `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, x)` then dispatch `input` event.

@@ -1,0 +1,149 @@
+{
+  "tag": "SECTION",
+  "id": "root",
+  "class": "todoapp",
+  "children": [
+    {
+      "tag": "HEADER",
+      "class": "header",
+      "children": [
+        {
+          "tag": "H1"
+        },
+        {
+          "tag": "DIV",
+          "class": "input-container",
+          "children": [
+            {
+              "tag": "INPUT",
+              "id": "todo-input",
+              "class": "new-todo"
+            },
+            {
+              "tag": "LABEL",
+              "class": "visually-hidden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "MAIN",
+      "class": "main",
+      "children": [
+        {
+          "tag": "DIV",
+          "class": "toggle-all-container",
+          "children": [
+            {
+              "tag": "INPUT",
+              "id": "toggle-all",
+              "class": "toggle-all"
+            },
+            {
+              "tag": "LABEL",
+              "class": "toggle-all-label"
+            }
+          ]
+        },
+        {
+          "tag": "UL",
+          "class": "todo-list",
+          "children": [
+            {
+              "tag": "LI",
+              "children": [
+                {
+                  "tag": "DIV",
+                  "class": "view",
+                  "children": [
+                    {
+                      "tag": "INPUT",
+                      "children": "..."
+                    },
+                    {
+                      "tag": "LABEL",
+                      "children": "..."
+                    },
+                    {
+                      "tag": "BUTTON",
+                      "children": "..."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "LI",
+              "children": [
+                {
+                  "tag": "DIV",
+                  "class": "view",
+                  "children": [
+                    {
+                      "tag": "INPUT",
+                      "children": "..."
+                    },
+                    {
+                      "tag": "LABEL",
+                      "children": "..."
+                    },
+                    {
+                      "tag": "BUTTON",
+                      "children": "..."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "FOOTER",
+      "class": "footer",
+      "children": [
+        {
+          "tag": "SPAN",
+          "class": "todo-count"
+        },
+        {
+          "tag": "UL",
+          "class": "filters",
+          "children": [
+            {
+              "tag": "LI",
+              "children": [
+                {
+                  "tag": "A",
+                  "class": "selected"
+                }
+              ]
+            },
+            {
+              "tag": "LI",
+              "children": [
+                {
+                  "tag": "A"
+                }
+              ]
+            },
+            {
+              "tag": "LI",
+              "children": [
+                {
+                  "tag": "A"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "BUTTON",
+          "class": "clear-completed"
+        }
+      ]
+    }
+  ]
+}

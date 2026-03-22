@@ -4,7 +4,12 @@ JSONL session analyzer for retrospective grading.
 Usage:
     uv run python .claude/skills/geckordp/tools/score_session.py <session_id>
 
-Reads the JSONL, computes D2/D3/D4 metrics, outputs a score card.
+Reads the live JSONL (safe to run mid-session), auto-detects the end of RE
+work by finding the last Write to a deliverable file (ARCHITECTURE.md,
+DESIGN.md, or README.md — but not RETROSPECTIVE.md), and scores only the
+turns up to that boundary.
+
+If no deliverable Write is found, scores all turns (backwards-compatible).
 """
 
 import json
@@ -12,6 +17,8 @@ import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
+
+DELIVERABLE_NAMES = {"ARCHITECTURE.md", "DESIGN.md", "README.md"}
 
 
 def find_jsonl(session_id):
@@ -60,23 +67,63 @@ def parse_events(path):
     return events
 
 
-def analyze(events):
-    """Compute all metrics from events."""
-    metrics = {}
+def find_deliverable_boundary(events):
+    """Find the index of the last event that Writes a deliverable file.
 
-    # Timestamps
-    timestamps = [e.get("timestamp") for e in events if e.get("timestamp")]
-    if len(timestamps) >= 2:
-        start = datetime.fromisoformat(timestamps[0].replace("Z", "+00:00"))
-        end = datetime.fromisoformat(timestamps[-1].replace("Z", "+00:00"))
+    Returns the index into the events list, or None if no deliverable
+    Write is found (falls back to scoring all events).
+    """
+    assistant_turns = [
+        (i, e) for i, e in enumerate(events)
+        if e.get("type") == "assistant" and "message" in e
+    ]
+    last_idx = None
+    for event_idx, turn in assistant_turns:
+        for b in turn["message"].get("content", []):
+            if not (isinstance(b, dict) and b.get("type") == "tool_use"):
+                continue
+            if b.get("name") != "Write":
+                continue
+            path = b.get("input", {}).get("file_path", "")
+            basename = path.rsplit("/", 1)[-1] if "/" in path else path
+            if basename in DELIVERABLE_NAMES:
+                last_idx = event_idx
+    return last_idx
+
+
+def analyze(events):
+    """Compute all metrics from events.
+
+    Auto-detects the deliverable boundary (last Write to ARCHITECTURE.md,
+    DESIGN.md, or README.md) and scores only turns up to that point.
+    This makes it safe to run mid-session: the retro/grading turns that
+    come after deliverable completion are excluded.
+    """
+    boundary = find_deliverable_boundary(events)
+    if boundary is not None:
+        scored_events = events[:boundary + 1]
+    else:
+        scored_events = events
+
+    metrics = {}
+    metrics["_boundary"] = boundary
+    metrics["_total_events"] = len(events)
+    metrics["_scored_events"] = len(scored_events)
+
+    # Timestamps — use full event range start, but boundary end
+    all_timestamps = [e.get("timestamp") for e in events if e.get("timestamp")]
+    scored_timestamps = [e.get("timestamp") for e in scored_events if e.get("timestamp")]
+    if len(scored_timestamps) >= 2:
+        start = datetime.fromisoformat(all_timestamps[0].replace("Z", "+00:00"))
+        end = datetime.fromisoformat(scored_timestamps[-1].replace("Z", "+00:00"))
         metrics["duration_sec"] = (end - start).total_seconds()
         metrics["duration_min"] = metrics["duration_sec"] / 60
     else:
         metrics["duration_sec"] = 0
         metrics["duration_min"] = 0
 
-    # Assistant turns
-    assistant_turns = [e for e in events if e.get("type") == "assistant" and "message" in e]
+    # Assistant turns (only within scored window)
+    assistant_turns = [e for e in scored_events if e.get("type") == "assistant" and "message" in e]
     metrics["total_turns"] = len(assistant_turns)
 
     # Text-only turns
@@ -109,18 +156,18 @@ def analyze(events):
         total_output += usage.get("output_tokens", 0)
     metrics["output_tokens"] = total_output
 
-    # User interruptions
+    # User interruptions (within scored window)
     interruptions = 0
-    for e in events:
+    for e in scored_events:
         if e.get("type") == "user":
             msg = str(e.get("message", ""))
             if "interrupted" in msg.lower():
                 interruptions += 1
     metrics["user_interruptions"] = interruptions
 
-    # Errors in tool results
+    # Errors in tool results (within scored window)
     error_count = 0
-    for e in events:
+    for e in scored_events:
         if e.get("type") == "user":
             msg = e.get("message", {})
             if isinstance(msg, dict):
@@ -235,7 +282,14 @@ def print_scorecard(metrics, deliverable_kb=0, waste_pct=None):
     print("SESSION SCORE CARD")
     print("=" * 60)
 
-    print(f"\nDuration:          {metrics['duration_min']:.1f} min")
+    boundary = metrics.get("_boundary")
+    if boundary is not None:
+        print(f"\nBoundary:          event {boundary} of {metrics['_total_events']} "
+              f"(last deliverable Write)")
+    else:
+        print(f"\nBoundary:          none detected (scoring all {metrics['_total_events']} events)")
+
+    print(f"Duration:          {metrics['duration_min']:.1f} min")
     print(f"Total turns:       {metrics['total_turns']}")
     print(f"Text-only turns:   {metrics['text_only_turns']} ({metrics['text_only_pct']:.1f}%)")
     print(f"Tool calls:        {metrics['total_tool_calls']}")

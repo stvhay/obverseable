@@ -1,0 +1,119 @@
+{
+  "url": "https://todomvc.com/examples/vue/dist/#/",
+  "title": "TodoMVC: Vue",
+  "charset": "UTF-8",
+  "contentType": "text/html",
+  "doctype": "html",
+  "cookie": "",
+  "referrer": "",
+  "scripts": [
+    {
+      "src": "https://www.google-analytics.com/analytics.js",
+      "type": "classic",
+      "len": 0
+    },
+    {
+      "src": "/examples/vue/dist/assets/index-ebzV244v.js",
+      "type": "module",
+      "len": 0
+    },
+    {
+      "src": "/examples/vue/dist/base.js",
+      "type": "classic",
+      "len": 0
+    }
+  ],
+  "stylesheets": [
+    "/examples/vue/dist/assets/index-AN23XS_-.css"
+  ],
+  "metas": [
+    {
+      "name": "description",
+      "content": "A TodoMVC written in Vue.",
+      "httpEquiv": ""
+    },
+    {
+      "name": "viewport",
+      "content": "width=device-width, initial-scale=1.0",
+      "httpEquiv": ""
+    }
+  ],
+  "frameworks": {
+    "react": false,
+    "reactFiber": false,
+    "vue": true,
+    "angular": false,
+    "svelte": false,
+    "jquery": false,
+    "backbone": false
+  },
+  "storage": {
+    "localStorageKeys": [],
+    "sessionStorageKeys": [
+      "__darkreader__wasEnabledForHost"
+    ],
+    "cookieCount": 0
+  },
+  "links": [
+    {
+      "text": "Source",
+      "href": "https://github.com/tastejs/todomvc/tree/gh-pages/examples/vue"
+    },
+    {
+      "text": "Vue.js",
+      "href": "http://vuejs.org/"
+    },
+    {
+      "text": "Documentation",
+      "href": "http://vuejs.org/guide/"
+    },
+    {
+      "text": "API Reference",
+      "href": "http://vuejs.org/api/"
+    },
+    {
+      "text": "Examples",
+      "href": "http://vuejs.org/examples/"
+    },
+    {
+      "text": "Vue.js on GitHub",
+      "href": "https://github.com/vuejs/vue"
+    },
+    {
+      "text": "Twitter",
+      "href": "http://twitter.com/vuejs"
+    },
+    {
+      "text": "Gitter Channel",
+      "href": "https://gitter.im/yyx990803/vue"
+    },
+    {
+      "text": "Discussions on GitHub",
+      "href": "https://github.com/vuejs/Discussion/issues"
+    },
+    {
+      "text": "let us know",
+      "href": "https://github.com/tastejs/todomvc/issues"
+    },
+    {
+      "text": "todos",
+      "href": "https://todomvc.com/examples/vue/dist/#/"
+    },
+    {
+      "text": "All",
+      "href": "https://todomvc.com/examples/vue/dist/#/"
+    },
+    {
+      "text": "Active",
+      "href": "https://todomvc.com/examples/vue/dist/#/active"
+    },
+    {
+      "text": "Completed",
+      "href": "https://todomvc.com/examples/vue/dist/#/completed"
+    },
+    {
+      "text": "TodoMVC",
+      "href": "http://todomvc.com/"
+    }
+  ]
+}

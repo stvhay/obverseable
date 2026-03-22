@@ -324,6 +324,20 @@ class RDPSession:
             wait=1.0,
         )
 
+    def fetch_css_sources(self):
+        """Fetch all linked stylesheet sources. Returns list of {href, content} dicts."""
+        hrefs = self.eval_json(
+            'JSON.stringify([...document.querySelectorAll("link[rel=stylesheet]")].map(l => l.href))'
+        )
+        if not hrefs:
+            return []
+        results = []
+        for href in hrefs:
+            content = self.fetch_text(href, wait=2.0)
+            if isinstance(content, str) and len(content) > 0:
+                results.append({"href": href, "content": content})
+        return results
+
     def classify_scripts(self):
         """Classify all loaded scripts by role. Returns list of dicts with src, role, size."""
         return self.eval_json(
@@ -397,6 +411,12 @@ class RDPSession:
                     })
                     requests_by_actor[actor_id]["_actor"] = actor_id
 
+        # Re-acquire target BEFORE querying network actors, since reload
+        # invalidates the old window global but network event actors may
+        # still be valid on the new context.
+        if action == "reload":
+            self._acquire_target()
+
         requests = []
         for actor_id, data in requests_by_actor.items():
             req = {
@@ -406,23 +426,29 @@ class RDPSession:
                 "mimeType": data.get("mimeType"),
                 "contentSize": data.get("contentSize") or data.get("transferredSize"),
             }
+            # Network event actors from resource events may be stale after
+            # reload — use a short timeout and skip on failure rather than
+            # hanging for the default 10s per request.
             try:
                 ne = NetworkEventActor(self.client, actor_id)
-                timings = ne.get_event_timings()
-                req["totalTime"] = timings.get("totalTime")
-                headers = ne.get_response_headers()
-                req["responseHeaders"] = {
-                    h["name"]: h["value"]
-                    for h in headers.get("headers", [])
-                }
-                ne.release()
+                old_timeout = self.client.timeout_sec
+                self.client.timeout_sec = 2.0
+                try:
+                    timings = ne.get_event_timings()
+                    req["totalTime"] = timings.get("totalTime")
+                    headers = ne.get_response_headers()
+                    req["responseHeaders"] = {
+                        h["name"]: h["value"]
+                        for h in headers.get("headers", [])
+                    }
+                    ne.release()
+                except Exception:
+                    pass
+                finally:
+                    self.client.timeout_sec = old_timeout
             except Exception:
                 pass
             requests.append(req)
-
-        # Re-acquire target since reload may have invalidated actors
-        if action == "reload":
-            self._acquire_target()
 
         return requests
 

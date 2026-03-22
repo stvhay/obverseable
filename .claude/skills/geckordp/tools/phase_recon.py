@@ -84,6 +84,17 @@ def run(url, target_dir, impl_name=None):
         if inlines:
             write_json(inlines, os.path.join(target_dir, f"notes/{prefix}inline_scripts.json"))
 
+        # Fetch CSS source files (for mechanism analysis, not just computed values)
+        print("[recon] Fetching CSS sources...")
+        css_sources = s.fetch_css_sources()
+        for css in css_sources:
+            fname = css["href"].split("/")[-1].split("?")[0] or "stylesheet.css"
+            out = os.path.join(target_dir, f"raw/sources/{impl_name or 'main'}/{fname}")
+            os.makedirs(os.path.dirname(out), exist_ok=True)
+            with open(out, "w") as f:
+                f.write(css["content"])
+            print(f"  CSS: {fname} ({len(css['content'])} chars)")
+
         # Capture network on reload
         print("[recon] Capturing network traffic...")
         traffic = s.capture_network(action="reload", wait=5.0)

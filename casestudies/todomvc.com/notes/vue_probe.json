@@ -1,0 +1,18 @@
+{
+  "title": "TodoMVC: Vue",
+  "frameworks": {
+    "vue": true,
+    "vueApp": true
+  },
+  "todoCount": 0,
+  "hasInput": true,
+  "hasFooter": true,
+  "hasToggleAll": true,
+  "filterLinks": [
+    "All",
+    "Active",
+    "Completed"
+  ],
+  "localStorage": [],
+  "hash": "#/"
+}
