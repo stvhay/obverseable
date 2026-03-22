@@ -117,8 +117,13 @@ class RDPSession:
         return None
 
     def eval_json(self, expr, wait=1.0):
-        """Evaluate JS expression that returns a JSON string, parse and return dict."""
+        """Evaluate JS expression that returns a JSON string, parse and return dict.
+
+        Handles LongString grips automatically — large JSON results (>1KB)
+        from Firefox RDP are returned as LongString actors, not raw strings.
+        """
         val = self.eval_js(expr, wait)
+        val = self._resolve_long_string(val)
         if isinstance(val, str):
             return json.loads(val)
         return val
@@ -190,7 +195,37 @@ class RDPSession:
             links: [...document.querySelectorAll("a[href]")].slice(0, 50).map(a => ({
                 text: a.textContent.trim().slice(0, 80),
                 href: a.href
-            }))
+            })),
+            interactive: {
+                buttons: [...document.querySelectorAll("button, [role=button]")].slice(0, 50).map(b => ({
+                    text: b.textContent.trim().slice(0, 60),
+                    type: b.type || null,
+                    ariaLabel: b.getAttribute("aria-label"),
+                    id: b.id || null,
+                    classes: b.className ? b.className.split(" ").slice(0, 3).join(" ") : null
+                })),
+                inputs: [...document.querySelectorAll("input, textarea, select")].slice(0, 30).map(i => ({
+                    type: i.type || i.tagName.toLowerCase(),
+                    name: i.name || null,
+                    placeholder: i.placeholder || null,
+                    ariaLabel: i.getAttribute("aria-label"),
+                    id: i.id || null
+                })),
+                nav: [...document.querySelectorAll("nav, [role=navigation], [role=tablist]")].slice(0, 10).map(n => ({
+                    tag: n.tagName,
+                    ariaLabel: n.getAttribute("aria-label"),
+                    items: [...n.querySelectorAll("a, button, [role=tab]")].slice(0, 10).map(i => i.textContent.trim().slice(0, 40))
+                })),
+                details: [...document.querySelectorAll("details, [role=menu]")].slice(0, 20).map(d => ({
+                    summary: d.querySelector("summary")?.textContent?.trim()?.slice(0, 60) || d.getAttribute("aria-label"),
+                    open: d.open || false
+                })),
+                dialogs: [...document.querySelectorAll("dialog, [role=dialog]")].map(d => ({
+                    id: d.id || null,
+                    ariaLabel: d.getAttribute("aria-label"),
+                    open: d.open || d.hasAttribute("open")
+                }))
+            }
         })""",
             wait=1.5,
         )

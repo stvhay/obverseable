@@ -170,6 +170,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 - Large JS eval results (e.g., `JSON.stringify` of big arrays) return as LongString grips, not strings. Always check for `{"type": "longString"}` and resolve via `StringActor`.
 - After navigation, always re-acquire the target — the old `consoleActor` and other actor IDs become stale. `RDPSession.navigate()` handles this automatically.
 - `extract_source_map()` fails on large bundles — `fetch_text()` returns LongString grip. Use stash pattern: `fetch(url).then(r=>r.text()).then(t=>{window.__sm=t})`, parse source list in-browser.
+- `eval_json()` now handles LongString grips automatically (fixed session 5). Previously it returned the raw LongString dict instead of resolving it. Pages with >50 scripts or >10KB JSON results trigger this.
+- For GitHub repo pages, skip DOM scraping for file contents — use `fetch()` to `raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`. GitHub's file viewer is a React component with unpredictable DOM structure.
 
 ### Case Study Process
 - **Never score from memory.** Run `score_session.py` FIRST, paste output, then write analysis. Self-estimates are off by 3-7x. Session 2 estimated 14 turns / Grade B; actual was 76 turns / Grade D. This error is structural — every session repeats it. Only the tooling fix (boundary-aware scorer reading live JSONL) prevents it.
@@ -180,6 +182,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 - **Validate subagent output programmatically** before trusting it. Check for required keys, non-null values.
 - **Network event actors go stale after reload.** `capture_network(action="reload")` collects actor IDs from pre-reload context. Use short timeout (2s) for `getEventTimings`/`getResponseHeaders` and skip failures silently.
 - **Computed styles show values, not mechanisms.** `getComputedStyle` gives RGB colors and pixel sizes — but not SVG data URIs, box-shadow stacks, pseudo-element content, or CSS-only visibility tricks. For a reproducible DESIGN.md, fetch and analyze the actual CSS source to document *how* things are built, not just what they look like.
+- **Verify algorithm claims against source.** Never document an algorithm (search, chunking, merge) from exports or interface files alone. Read the implementation file. Session 5 documented RRF search from `search/__init__.py` without reading `search/search.py` — all three reviewers flagged this.
+- **Fetch config implementations, not just examples.** Config example files are always a subset of actual config. Session 5 missed RerankerConfig, AsrConfig, EnrichmentConfig, chunk_overlap_tokens because only `config.example.json` was read, not `config.py`.
+- **Include design evaluation.** DESIGN.md must critically evaluate at least 3 design decisions. Absence of bugs/risks/trade-offs is a scoring penalty — all three session 5 reviewers flagged this.
+- **RE the application, not the content.** The target is the web application at the URL — its UI components, interactive elements, behaviors. Session 5 documented the content a page displayed but not the page itself. Content is context; the page's UI is the target.
 
 ### Tooling Principles
 - **Build capabilities, not macros.** After a bad session, the instinct is to script the specific steps that were slow. That produces tools that only work on one site. Instead, identify what general capability was missing and build that. Test: "would this tool do anything useful on a site I've never seen?" If no, it's not a tool.

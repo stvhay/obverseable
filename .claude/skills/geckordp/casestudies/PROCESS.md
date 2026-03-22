@@ -45,10 +45,13 @@ Single script that navigates to target and extracts in one eval:
 - Custom window globals
 - First 50 `<a href>` links
 - `document.cookie`, `document.referrer`
+- **Interactive UI elements:** All `<button>`, `<input>`, `<select>`, `<details>`, `<dialog>` elements. Elements with click handlers or `role="button"`. Tab bars, navigation menus, dropdowns, modals.
 
 **Output:** Write to `notes/surface.json`
 
 **Use `tools/fingerprint.py` when available.**
+
+**IMPORTANT: The target is the web application at the URL, not the content it displays.** RE the application's UI and behavior — the content is context, not the target.
 
 ### Phase 2: Source Recovery (< 3 min, 1-2 turns)
 
@@ -81,11 +84,13 @@ From recovered sources, identify:
 Programmatic interaction via JS eval to verify architecture hypotheses. Write a custom probe script per target based on what Phase 1-2 discovered. There is no general behavioral probe — every site has different interactions, selectors, and assertions.
 
 General approach:
-1. Identify the primary user actions from the UI (forms, buttons, links, drag targets)
+1. **Inventory all interactive elements** — buttons, tabs, dropdowns, toggles, forms, navigation links, expand/collapse controls. This is the primary output: a map of every user action the page supports.
 2. Write a single async script that performs each action with `setTimeout` delays for framework re-renders
 3. After each action, read DOM state to verify the expected change
 4. Test edge cases relevant to this specific target
 5. Extract computed styles on the now-populated page
+
+**The probe must cover the page's UI, not just its content.** Every clickable/interactive element is a behavioral specification to document.
 
 **Use the step-chain pattern (Promise + setTimeout) for reactive frameworks. Use native input setters for React/Vue controlled inputs. Write the probe fresh — don't reuse a previous target's script.**
 
@@ -195,6 +200,9 @@ Target: **< 20 turns total** for a standard site.
 9. **Analyze ALL loaded scripts.** After fingerprinting, categorize every script (app code, framework, shared infrastructure, analytics, polyfill). Analyze all "shared infrastructure" files — they often define the host page contract. Don't skip support files.
 10. **Extract visual design programmatically.** One eval call to get computed styles for key elements (colors, fonts, dimensions, borders, shadows). DESIGN.md without visual design values fails the reproducibility gate.
 11. **Validate subagent output before trusting it.** Check: file exists, valid JSON, no null/false for required keys. If validation fails, re-run with sonnet. Don't debug haiku failures.
+12. **Verify algorithm claims against source.** For any algorithmic claim in DESIGN.md (search algorithm, chunking strategy, merge logic), the source file implementing it must have been read. "Inferred from exports" is not sufficient — fetch the implementation.
+13. **Fetch config implementation, not just examples.** Config example files are always a subset of the actual config schema. For Python projects, read the config dataclass/class definition. For JS projects, read the schema validation code.
+14. **Include design evaluation in DESIGN.md.** Add a "Design Evaluation" section that critically evaluates at least 3 design decisions — bugs, risks, trade-offs, improvement opportunities. Absence of critique is a scoring penalty.
 
 ### Model Tier Strategy
 
