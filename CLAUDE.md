@@ -57,9 +57,9 @@ When the user wants to run an exercise (e.g., "run an exercise on example.com"):
 
 ### Rules
 
-- **Do not stop** except at step 6 (asking for feedback).
+- **Do not stop** except at step 6 (asking for feedback). This includes step 7 — after getting feedback, implement ALL recommendations and audit ALL affected docs without asking "is that it?" or "should I continue?" Push through to completion autonomously. The user should not have to prompt you to keep going.
 - **Git tree must be clean at the end** apart from the case study report. Ask the user whether to commit the report (they may want to delete it for a repeat session).
-- **Everything persists in the repo** — CLAUDE.md, PROCESS.md, RUBRIC.md, tool code. Memory files are deleted between sessions.
+- **Everything persists in the repo** — CLAUDE.md, PROCESS.md, RUBRIC.md, tool code. Memory files are deleted between sessions. If a lesson matters, it goes in CLAUDE.md or PROCESS.md, not memory.
 - **Use `RDPSession`** from `tools/recon.py` — don't reinvent connection boilerplate. The skill and tools can be modified.
 - **DESIGN.md must be reimplementable** — a developer should be able to rebuild the app from it alone.
 
@@ -92,7 +92,6 @@ casestudies/{target}/
 │   ├── recon.py                # RDPSession — connect, navigate, fingerprint, classify scripts, extract styles, source maps, network
 │   ├── inject.py               # ScriptInjector — pre-page JS injection via debugger pause
 │   ├── phase_recon.py          # Phases 0-2 in one script — any site (navigate, fingerprint, sources, network, styles)
-│   ├── phase_behavioral.py     # Phase 4 — async behavioral probe + populated style extraction
 │   ├── quality_review.py       # D1 quality review panel — dispatches haiku/sonnet/opus reviewers
 │   ├── score_session.py        # JSONL session analyzer — D2/D3/D4 auto-scoring, boundary-aware
 │   └── grades_db.py            # SQLite grades store — session-over-session tracking
@@ -177,11 +176,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 - **Analyze ALL loaded scripts**, not just the app bundle. Support files (analytics loaders, sidebar injectors, config fetchers) reveal shared infrastructure and host page contracts.
 - **DESIGN.md must include visual design values.** Extract computed styles programmatically — colors, fonts, dimensions, breakpoints. Without these the spec fails the reproducibility gate.
 - **Text-only turns are the primary efficiency leak.** Every assistant message must include at least one tool call. Status goes alongside tool calls, never standalone.
-- **One behavioral probing script per target.** Test all interactions in a single eval returning one result object. Never split into separate calls.
 - **Batch all parallel tool calls into one message.** 8 file reads = 1 message, not 8.
 - **Validate subagent output programmatically** before trusting it. Check for required keys, non-null values.
 - **Network event actors go stale after reload.** `capture_network(action="reload")` collects actor IDs from pre-reload context. Use short timeout (2s) for `getEventTimings`/`getResponseHeaders` and skip failures silently.
-- **Use async probing for reactive frameworks.** Synchronous DOM reads between dispatched events miss React/Vue re-renders. Chain operations with `setTimeout` (100ms) to let the framework reconcile.
-- **Extract styles AFTER adding content.** Selectors like `.todo-list li` return `found: false` on an empty page. Run style extraction in the behavioral probe after adding items.
-- **Computed styles show values, not mechanisms.** `getComputedStyle` gives RGB colors and pixel sizes — but not SVG data URIs, box-shadow stacks, pseudo-element content, or CSS-only visibility tricks. For a reproducible DESIGN.md, fetch and analyze the actual CSS source (`todomvc-app-css/index.css`) to document *how* things are built, not just what they look like.
-- **React controlled inputs require native setter.** `input.value = x` doesn't trigger React. Use `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, x)` then dispatch `input` event.
+- **Computed styles show values, not mechanisms.** `getComputedStyle` gives RGB colors and pixel sizes — but not SVG data URIs, box-shadow stacks, pseudo-element content, or CSS-only visibility tricks. For a reproducible DESIGN.md, fetch and analyze the actual CSS source to document *how* things are built, not just what they look like.
+
+### Tooling Principles
+- **Build capabilities, not macros.** After a bad session, the instinct is to script the specific steps that were slow. That produces tools that only work on one site. Instead, identify what general capability was missing and build that. Test: "would this tool do anything useful on a site I've never seen?" If no, it's not a tool.
+- **Behavioral probing is inherently target-specific.** There is no general "behavioral probe" script — every site has different selectors, interactions, and assertions. Write probes fresh each session from general primitives (step-chain with setTimeout for framework re-renders, native input setter for React/Vue, click/type/wait helpers).
+- **Extract styles on populated pages.** Computed style extraction returns `found: false` for selectors that match dynamically-created content. Run style extraction after interacting with the page, not on initial load.
+- **Reactive framework input: use native setter.** `input.value = x` doesn't trigger React/Vue. Use `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, x)` then dispatch `input` event.
+- **Async probing for reactive frameworks.** Synchronous DOM reads between dispatched events miss React/Vue re-renders. Chain operations with `setTimeout` (100ms) to let the framework reconcile.

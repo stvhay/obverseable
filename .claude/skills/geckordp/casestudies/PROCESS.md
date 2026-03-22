@@ -78,15 +78,16 @@ From recovered sources, identify:
 
 ### Phase 4: Behavioral Probing (< 3 min, 1-2 turns)
 
-Programmatic interaction via JS eval to verify architecture hypotheses:
+Programmatic interaction via JS eval to verify architecture hypotheses. Write a custom probe script per target based on what Phase 1-2 discovered. There is no general behavioral probe — every site has different interactions, selectors, and assertions.
 
-1. Add items via DOM manipulation
-2. Toggle, edit, delete items
-3. Test routing/filtering
-4. Check state after each action
-5. Test edge cases (empty input, XSS payloads, rapid operations)
+General approach:
+1. Identify the primary user actions from the UI (forms, buttons, links, drag targets)
+2. Write a single async script that performs each action with `setTimeout` delays for framework re-renders
+3. After each action, read DOM state to verify the expected change
+4. Test edge cases relevant to this specific target
+5. Extract computed styles on the now-populated page
 
-**Single script with sequential actions and state checks between each.**
+**Use the step-chain pattern (Promise + setTimeout) for reactive frameworks. Use native input setters for React/Vue controlled inputs. Write the probe fresh — don't reuse a previous target's script.**
 
 ### Phase 5: Network & DOM Analysis (< 2 min, 1 turn)
 
@@ -190,7 +191,7 @@ Target: **< 20 turns total** for a standard site.
 5. **No reinventing wheels.** If a tool exists in `tools/`, use it.
 6. **Always read JSONL at the end.** Run `score_session.py` FIRST, paste its output into RETROSPECTIVE.md, then write analysis. Never estimate scores from memory — self-perception is systematically wrong by 3-7x.
 7. **Batch parallel tool calls.** All independent Read/Bash calls go in one message. Reading 8 files = 1 message with 8 reads, not 8 messages.
-8. **One behavioral probing script per target.** Test all interactions in a single eval: add, toggle, edit, delete, filter, edge cases. Return one result object. Never split into separate eval calls.
+8. **Write behavioral probes fresh per target.** There is no reusable probe script — every site has different selectors and interactions. Write a single async eval per target from general primitives (step-chain, native input setter, click/wait). Return one result object. Never split into separate eval calls.
 9. **Analyze ALL loaded scripts.** After fingerprinting, categorize every script (app code, framework, shared infrastructure, analytics, polyfill). Analyze all "shared infrastructure" files — they often define the host page contract. Don't skip support files.
 10. **Extract visual design programmatically.** One eval call to get computed styles for key elements (colors, fonts, dimensions, borders, shadows). DESIGN.md without visual design values fails the reproducibility gate.
 11. **Validate subagent output before trusting it.** Check: file exists, valid JSON, no null/false for required keys. If validation fails, re-run with sonnet. Don't debug haiku failures.
@@ -203,7 +204,7 @@ Haiku and sonnet are cheaper and faster but less capable. They make mistakes —
 |---|---|---|
 | Source extraction | haiku | Check file count matches expected, spot-check first/last file |
 | Network capture | haiku | Check capture.json is valid JSON, has expected URL patterns |
-| DOM tree walk | haiku | Grep output for known selectors (.todoapp, etc.) |
+| DOM tree walk | haiku | Grep output for known selectors from fingerprint |
 | Fingerprinting | haiku | Check all expected keys present in output JSON |
 | Cross-framework data gathering | sonnet | Compare output structure across frameworks for consistency |
 | Architecture analysis | opus | — (main agent judgment) |

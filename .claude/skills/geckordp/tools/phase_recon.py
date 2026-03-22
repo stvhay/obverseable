@@ -101,18 +101,26 @@ def run(url, target_dir, impl_name=None):
         write_json(traffic, os.path.join(target_dir, f"raw/network/{prefix}capture.json"))
         print(f"[recon] Network: {len(traffic)} requests")
 
-        # Extract computed styles for common selectors
-        common_selectors = [
-            "body", "h1", ".todoapp", ".new-todo", ".todo-list",
-            ".todo-list li", ".todo-list li label", ".toggle", ".destroy",
-            ".footer", ".filters a", ".filters a.selected", ".todo-count",
-            ".toggle-all", ".clear-completed", "header", "main", "footer",
-        ]
-        styles = s.extract_styles(common_selectors)
-        if styles:
-            found = [st for st in styles if st.get("found")]
-            write_json(styles, os.path.join(target_dir, f"notes/{prefix}styles.json"))
-            print(f"[recon] Styles extracted for {len(found)}/{len(common_selectors)} selectors")
+        # Extract computed styles for key selectors discovered on the page.
+        # Uses semantic HTML tags + classes found in the DOM, not hardcoded selectors.
+        discovered_selectors = s.eval_json(
+            """JSON.stringify((() => {
+                const sels = new Set(['body', 'h1', 'h2', 'h3', 'header', 'main', 'footer', 'nav', 'aside']);
+                // Add elements with class attributes (up to 30)
+                document.querySelectorAll('[class]').forEach(el => {
+                    if (sels.size >= 30) return;
+                    const cls = el.classList[0];
+                    if (cls && cls.length < 30) sels.add('.' + cls);
+                });
+                return [...sels];
+            })())"""
+        )
+        if discovered_selectors:
+            styles = s.extract_styles(discovered_selectors)
+            if styles:
+                found = [st for st in styles if st.get("found")]
+                write_json(styles, os.path.join(target_dir, f"notes/{prefix}styles.json"))
+                print(f"[recon] Styles extracted for {len(found)}/{len(discovered_selectors)} selectors")
 
     summary = {
         "url": url,
