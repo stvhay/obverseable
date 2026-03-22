@@ -30,3 +30,6 @@ Thumbs.db
 
 # Claude Code runtime
 .claude/.statusline-stats
+
+# Project
+rdp-host.txt
