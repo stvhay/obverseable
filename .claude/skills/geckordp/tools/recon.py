@@ -86,11 +86,9 @@ class RDPSession:
         time.sleep(wait)
         self._acquire_target()
 
-    # NOTE: addEventListener monkey-patching does NOT work via RDP eval.
-    # Both navigate_to() and reload() create new window globals, destroying
-    # any patches installed on the previous global. Capturing event listeners
-    # requires either a Firefox extension/userscript or source code analysis.
-    # Use extract_source_map() to recover source and grep for addEventListener.
+    # For addEventListener monkey-patching, use ScriptInjector from tools/inject.py.
+    # It uses the debugger's script.source.firstStatement breakpoint to inject
+    # JS before any page scripts run, surviving the navigation global swap.
 
     def eval_js(self, expr, wait=1.0):
         """Evaluate JS and return the result value. Handles two-stage async pattern.
@@ -336,6 +334,8 @@ def write_sources(sources_dict, output_dir):
     """Write extracted source files to output directory."""
     os.makedirs(output_dir, exist_ok=True)
     for filepath, content in sources_dict.items():
+        if not isinstance(content, str):
+            continue
         # Normalize webpack:// paths
         clean = filepath
         for prefix in ["webpack://", "webpack:///"]:

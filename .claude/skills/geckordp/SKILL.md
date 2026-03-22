@@ -65,6 +65,7 @@ Reusable Python utilities in `tools/`:
 | Tool | Purpose |
 |---|---|
 | `recon.py` | `RDPSession` context manager — connect, navigate, fingerprint, fetch sources |
+| `inject.py` | `ScriptInjector` — inject JS before page scripts via debugger firstStatement pause |
 | `score_session.py` | JSONL session analyzer — computes D2/D3/D4 rubric metrics |
 | `grades_db.py` | SQLite store for per-session scores and raw metrics |
 

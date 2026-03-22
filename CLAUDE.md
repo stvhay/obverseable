@@ -23,6 +23,10 @@ Single connection. No extension, no server, no intermediary. Claude connects dir
 - Nix flake for dev environment (uv, ruff, pytest)
 - Firefox with `--start-debugger-server` enabled
 
+## Firefox Connection
+
+RDP host and port are in `rdp-host.txt` (gitignored) at project root. Format: `host:port` on one line (e.g., `192.168.64.1:6000`). Read this file to get connection details — don't ask the user.
+
 ## Build & Test
 
 ```bash
@@ -39,11 +43,59 @@ FIREFOX_HOST=192.168.64.1 FIREFOX_PORT=6000 uv run pytest tests/ -v --timeout=30
 #   devtools.chrome.enabled = true
 ```
 
+## Case Study Exercises
+
+When the user wants to run an exercise (e.g., "run an exercise on example.com"):
+
+1. **Create `casestudies/{target}/` directory tree** with `raw/`, `notes/`, etc.
+2. **Reverse engineer the site** using the geckordp skill and `tools/recon.py`. Use whatever techniques needed. Goal: produce documentation sufficient for a fresh context to reproduce the entire design (without plagiarising source — reconstruct requirements, constraints, features, behavior).
+3. **Write deliverables** in `casestudies/{target}/` — ARCHITECTURE.md, DESIGN.md, README.md, RETROSPECTIVE.md. Sub-deliverables are encouraged.
+4. **Grade the session** using the rubric in `casestudies/RUBRIC.md`. Score from JSONL via `tools/score_session.py`. Record in `tools/grades_db.py`. The rubric is fixed.
+5. **Comprehensive self-evaluation.** Develop actionable recommendations (not "do better" — concrete changes to tools, process, docs).
+6. **Ask for user feedback.** This is the ONE stop point. Adjust recommendations based on feedback.
+7. **Implement all recommendations** — tool improvements, process doc updates, bug fixes, etc.
+
+### Rules
+
+- **Do not stop** except at step 6 (asking for feedback).
+- **Git tree must be clean at the end** apart from the case study report. Ask the user whether to commit the report (they may want to delete it for a repeat session).
+- **Everything persists in the repo** — CLAUDE.md, PROCESS.md, RUBRIC.md, tool code. Memory files are deleted between sessions.
+- **Use `RDPSession`** from `tools/recon.py` — don't reinvent connection boilerplate. The skill and tools can be modified.
+- **DESIGN.md must be reimplementable** — a developer should be able to rebuild the app from it alone.
+
+### Process Reference
+
+- `.claude/skills/geckordp/casestudies/PROCESS.md` — phase-by-phase playbook with turn budgets and efficiency constraints
+- `.claude/skills/geckordp/casestudies/RUBRIC.md` — 6-dimension grading rubric (gate + D1–D6)
+
+### Output Structure
+
+```
+casestudies/{target}/
+├── README.md           # RE methodology log — techniques, findings, operational notes
+├── ARCHITECTURE.md     # System structure — modules, data flow, dependencies
+├── DESIGN.md           # Behavioral spec — sufficient for reimplementation
+├── RETROSPECTIVE.md    # Efficiency analysis from JSONL, lessons, follow-ups
+├── raw/
+│   ├── sources/        # Original source files from source maps
+│   ├── network/        # Network capture JSON
+│   └── screenshots/    # Page screenshots
+└── notes/              # Working files (surface.json, dom.json, etc.)
+```
+
 ## Skill Structure
 
 ```
 .claude/skills/geckordp/
 ├── SKILL.md                    # Skill entry point (with frontmatter)
+├── tools/
+│   ├── recon.py                # RDPSession context manager — connect, navigate, fingerprint, sources
+│   ├── score_session.py        # JSONL session analyzer — D2/D3/D4 auto-scoring
+│   └── grades_db.py            # SQLite grades store — session-over-session tracking
+├── casestudies/
+│   ├── PROCESS.md              # 8-phase RE methodology playbook
+│   ├── RUBRIC.md               # 6-dimension grading rubric
+│   └── grades.db               # SQLite database of session scores
 └── references/
     ├── 00-connection.md        # Firefox setup, connection pattern
     ├── 01-rdp-client.md        # RDPClient API, listeners
@@ -110,3 +162,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow.
 - `evaluate_js_async` is two-stage — register listener BEFORE calling, match results by `resultID`.
 - Network methods fail silently without `watcher.watch_resources()` first.
 - `inner_html()`/`outer_html()` return LongString for large pages — use `StringActor.substring()` to page through.
+- `navigate_to()` and `reload()` destroy the window global — monkey-patches installed via eval don't survive. Use `ScriptInjector` from `tools/inject.py` to inject JS before page scripts run.
+- Large JS eval results (e.g., `JSON.stringify` of big arrays) return as LongString grips, not strings. Always check for `{"type": "longString"}` and resolve via `StringActor`.
+- After navigation, always re-acquire the target — the old `consoleActor` and other actor IDs become stale. `RDPSession.navigate()` handles this automatically.
